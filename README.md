@@ -2,11 +2,19 @@
 
 A Debian image based on Bento boxes with Docker and other tools preinstalled
 
-## Build
+## Getting Started
+
+### Prerequisites
 
 ```shell
 brew tap hashicorp/tap
-brew install hashicorp/tap/packer
+brew install hashicorp/tap/packer jq vagrant
+```
+
+### Build
+
+```shell
+cd src/
 ```
 
 TIP: Convert old JSON formatted configs to HCL2:
@@ -42,12 +50,12 @@ packer build -force debian-docker.pkr.hcl
 Run the build:
 
 ```shell
-cd test/
+cd ../test/
 vagrant box add --force debian-docker ../build/package.box
 vagrant up
 ```
 
-## Publish
+### Publish
 
 Create an [access token](https://app.vagrantup.com/settings/security)
 
@@ -94,10 +102,6 @@ response=$(curl \
 Extract the upload URL from the response (requires the jq command)
 
 ```shell
-brew install jq
-```
-
-```shell
 upload_path=$(echo "$response" | jq --raw-output .upload_path)
 ```
 
@@ -115,3 +119,30 @@ curl \
   --header "Authorization: Bearer $VAGRANT_CLOUD_TOKEN" \
   "https://app.vagrantup.com/api/v1/box/$VAGRANT_CLOUD_USER/$VAGRANT_CLOUD_BOX/version/$VAGRANT_CLOUD_VERSION/release"
 ```
+
+## Contributing
+
+Please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for details on our code of conduct, and [CONTRIBUTING.md](CONTRIBUTING.md) for the process for submitting pull requests to us.
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository][gh-tags].
+
+## Authors
+
+All the authors can be seen in the [AUTHORS.md](AUTHORS.md) file.
+
+Contributors can be seen in the [CONTRIBUTORS.md](CONTRIBUTORS.md) file.
+
+See also the full list of [contributors][gh-contributors] who participated in this project.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details
+
+## Acknowledgments
+
+A list of used libraries and code with their licenses can be seen in the [ACKNOWLEDGMENTS.md](ACKNOWLEDGMENTS.md) file.
+
+[gh-tags]: https://github.com/D3strukt0r/vagrant-debian-docker/tags
+[gh-contributors]: https://github.com/D3strukt0r/vagrant-debian-docker/contributors

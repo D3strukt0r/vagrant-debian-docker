@@ -5,7 +5,7 @@ variable "box_basename" {
 
 variable "build_directory" {
   type    = string
-  default = "./build"
+  default = "../build"
 }
 
 variable "guest_additions_url" {
