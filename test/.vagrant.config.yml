@@ -39,7 +39,7 @@ folder:
       - 'README.md'
   docker:
     # On Linux hosts you can use the default "/var/lib/docker/overlay2" path
-    # On Windows and MacOS its not directly accessible, so you need to use 
+    # On Windows and MacOS its not directly accessible, so you need to use
     # something else
     # On MacOS it's in "~/Library/Containers/com.docker.docker/Data/vms/0", use
     # "screen ~/Library/Containers/com.docker.docker/Data/vms/0/tty" to access
@@ -51,3 +51,6 @@ folder:
 ssh:
   private_key: '~/.ssh/id_ed25519'
   public_key: '~/.ssh/id_ed25519.pub'
+
+gpg:
+  id: 'C9E5AB85364CA764'

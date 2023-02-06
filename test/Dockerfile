@@ -3,7 +3,7 @@ FROM php:8.2-fpm
 RUN <<EOT
     #!/bin/bash -e -u -x -o pipefail
     apt-get update
-    apt-get install --yes \
+    apt-get install --no-install-recommends --no-install-suggests --yes \
 		libfreetype6-dev \
 		libjpeg62-turbo-dev \
 		libpng-dev

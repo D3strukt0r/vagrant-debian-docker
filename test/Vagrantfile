@@ -1,42 +1,16 @@
 require 'yaml'
 require 'fileutils'
 
-Vagrant.require_version '>= 2.2.4'
-
-# ------------------------------------------------------------------------------
-# Check for required plugins
-# ------------------------------------------------------------------------------
-plugins_installed = false
-unless Vagrant.has_plugin?('vagrant-hostsupdater')
-  system('vagrant plugin install vagrant-hostsupdater')
-  puts 'Dependency "vagrant-hostsupdater" installed.'
-  plugins_installed = true
-end
-unless Vagrant.has_plugin?('vagrant-notify-forwarder')
-  system('vagrant plugin install vagrant-notify-forwarder')
-  puts 'Dependency "vagrant-notify-forwarder" installed.'
-  plugins_installed = true
-end
-unless Vagrant.has_plugin?('vagrant-vbguest')
-  system('vagrant plugin install vagrant-vbguest')
-  puts 'Dependency "vagrant-vbguest" installed.'
-  plugins_installed = true
-end
-if plugins_installed
-  puts 'Plugins were installed. Please restart the Vagrant environment.'
-  exit
-end
-
-# ------------------------------------------------------------------------------
-# Load configuration
-# ------------------------------------------------------------------------------
-settings = YAML.load(File.read('.vagrant.config.yml'))
-
 Vagrant.configure('2') do |config|
+  # ----------------------------------------------------------------------------
+  # Load configuration
+  # ----------------------------------------------------------------------------
+  settings = YAML.load(File.read('.vagrant.config.yml'))
+
   # ----------------------------------------------------------------------------
   # Configure the machine
   # ----------------------------------------------------------------------------
-  config.vm.box = 'debian-docker'
+  config.vm.box = 'debian-docker-local'
 
   config.vm.provider 'virtualbox' do |vb|
     # Set the name to show in the GUI
@@ -55,8 +29,9 @@ Vagrant.configure('2') do |config|
       vb.memory = settings['vm']['memory']
     end
 
+    # Fixes "DNS Not Working"
     # See http://serverfault.com/questions/453185/vagrant-virtualbox-dns-10-0-2-3-not-working?rq=1
-    #vb.customize ['modifyvm', :id, '--natdnshostresolver1', 'on'] # TODO: Enable?
+    vb.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
   end
 
   if Vagrant.has_plugin?('vagrant-vbguest')
@@ -176,10 +151,6 @@ Vagrant.configure('2') do |config|
     config.vm.provision 'file', source: '~/.ssh/id_rsa', destination: '~/.ssh/id_rsa', run: 'always'
     config.vm.provision 'file', source: '~/.ssh/id_rsa.pub', destination: '~/.ssh/id_rsa.pub', run: 'always'
   end
-  # Change to the project directory on login
-  config.vm.provision 'cd-to-project', type: 'shell', privileged: false, inline: <<-SCRIPT
-    echo 'cd /vagrant' >> /home/vagrant/.bashrc
-  SCRIPT
 
   # Login to Docker Hub
   class DockerUsername
@@ -203,18 +174,21 @@ Vagrant.configure('2') do |config|
       pass
     end
   end
-  config.vm.provision 'create-docker-folder', type: 'shell', privileged: false, inline: <<-SCRIPT
-    mkdir -p ~/.docker
-  SCRIPT
-  # TODO: Use pass to login
-  #config.vm.provision 'docker-login', type: 'shell', privileged: false, env: {'USERNAME' => DockerUsername.new, 'PASSWORD' => DockerPassword.new}, inline: <<-SCRIPT
-  #  docker login --username "${USERNAME:-}" --password "${PASSWORD:-}"
+  #config.vm.provision 'setup', type: 'shell', privileged: false, inline: <<-SCRIPT
+  #  gpg --batch --passphrase '' --quick-generate-key "Generated Key (Do Not Use) <generated@example.com>" rsa4096 cert never
+  #  pass init generated@example.com
+  #  cat 'pass is initialized' | pass insert -e docker-credential-helpers/docker-pass-initialized-check
   #SCRIPT
+
+  config.vm.provision 'docker-login', type: 'shell', privileged: false, env: {'USERNAME' => DockerUsername.new, 'PASSWORD' => DockerPassword.new}, inline: <<-SCRIPT
+    docker login --username "${USERNAME:-}" --password "${PASSWORD:-}"
+  SCRIPT
 
   # Optionally: Build the application with "vagrant up --provision-with build"
   config.vm.provision 'build', type: 'shell', privileged: false, run: 'never', inline: <<-SCRIPT
     cd /vagrant
     # TODO: Build using BuildX
+    docker buildx build --platform linux/amd64,linux/arm64,linux/riscv64 .
   SCRIPT
 
   # This one setups the application for local development (runs once on initial setup)
@@ -233,14 +207,16 @@ Vagrant.configure('2') do |config|
     config.vm.post_up_message = 'Machine was booted, startup scripts are running inside the docker containers - please wait. If you\'re curious, you can execute "docker logs -t fpm" inside vagrant.'
   end
 
-  #config.trigger.after :up do |trigger|
-  #  trigger.name = 'Start Containers'
-  #  trigger.info = 'Starting Docker containers...'
-  #  trigger.run_remote = { inline: 'cd /vagrant; docker compose up' }
-  #end
-  #config.trigger.before :halt do |trigger|
-  #  trigger.name = 'Stop Containers'
-  #  trigger.info = 'Stopping Docker containers...'
-  #  trigger.run_remote = { inline: 'cd /vagrant; docker compose down' }
-  #end
+  if Gem::Version.new(Vagrant::VERSION) >= Gem::Version.new('2.1.0')
+    #config.trigger.after :up do |trigger|
+    #  trigger.name = 'Start Containers'
+    #  trigger.info = 'Starting Docker containers...'
+    #  trigger.run_remote = { inline: 'cd /vagrant; if [ -f compose.yml ]; then docker compose up; fi' }
+    #end
+    #config.trigger.before :halt do |trigger|
+    #  trigger.name = 'Stop Containers'
+    #  trigger.info = 'Stopping Docker containers...'
+    #  trigger.run_remote = { inline: 'cd /vagrant; if [ -f compose.yml ]; then docker compose down; fi' }
+    #end
+  end
 end

@@ -72,7 +72,7 @@ It’s not! Patches without documentation will be returned to sender. By “docu
 * Docstrings (for Python; or API-doc-friendly comments for other languages) must be created or updated for public API functions/methods/etc. (This step is optional for some bugfixes.)
 
   * Don’t forget to include versionadded/versionchanged ReST directives at the bottom of any new or changed Python docstrings!
-  
+
     * Use versionadded for truly new API members – new methods, functions, classes or modules.
     * Use versionchanged when adding/removing new function/method arguments, or whenever behavior changes.
 
@@ -90,11 +90,9 @@ Here’s an example workflow for a project `theproject` hosted on GitHub, which 
 
 #### Preparing your Fork
 
-* Click ‘Fork’ on GitHub, creating e.g. `yourname/theproject`. 
+* Click ‘Fork’ on GitHub, creating e.g. `yourname/theproject`.
 * Clone your project: `git clone git@github.com:yourname/theproject`.
 * `cd theproject`
-* Create and activate a virtual environment.
-* Install the development requirements: `pip install -r dev-requirements.txt`.
 * Create a branch: `git checkout -b foo-the-bars 1.3.`
 
 #### Making your Changes
