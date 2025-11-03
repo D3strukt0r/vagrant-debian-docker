@@ -3,6 +3,10 @@ set -e -u -o pipefail
 IFS=$'\n\t'
 set -x
 
+function runAsUser() {
+  su - vagrant -c "$1"
+}
+
 # ------------------------------------------------------------------------------
 # Install Docker
 # ------------------------------------------------------------------------------
@@ -16,19 +20,18 @@ echo \
   $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt-get update
 apt-get install --no-install-recommends --no-install-suggests --yes \
-    docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 # Add "docker" group if it doesn't exist
 getent group docker >/dev/null || groupadd docker
 usermod -aG docker vagrant
-#newgrp docker
 
 # Prepare Docker config
-su - vagrant -c 'mkdir -p ~/.docker'
+#runAsUser 'mkdir -p ~/.docker'
 
 # Setup BuildX
-docker run --privileged --rm tonistiigi/binfmt --install all
-docker buildx create --name builder-default --driver docker-container --bootstrap --use
+runAsUser 'docker run --privileged --rm tonistiigi/binfmt --install all'
+runAsUser 'docker buildx create --name builder-default --driver docker-container --bootstrap --use'
 
 # ------------------------------------------------------------------------------
 # Improve SSH connection
@@ -38,7 +41,7 @@ sed -i -e '/UseDNS no/s/^#//' /etc/ssh/sshd_config
 sed -i -e '/GSSAPIAuthentication no/s/^#//' /etc/ssh/sshd_config
 service ssh restart
 
-su - vagrant -c 'ssh-keyscan github.com >> ~/.ssh/known_hosts'
+#runAsUser 'ssh-keyscan github.com >> ~/.ssh/known_hosts'
 
 # ------------------------------------------------------------------------------
 # Install Password Manager for easy Docker Login
@@ -54,4 +57,4 @@ su - vagrant -c 'ssh-keyscan github.com >> ~/.ssh/known_hosts'
 # Prepare User
 # ------------------------------------------------------------------------------
 # Change to the project directory on login
-su - vagrant -c 'echo '\''cd /vagrant'\'' >> ~/.bashrc'
+#runAsUser 'echo '\''cd /vagrant'\'' >> ~/.bashrc'

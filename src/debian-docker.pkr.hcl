@@ -58,9 +58,15 @@ build {
   #}
 
   provisioner "shell" {
-    environment_vars  = ["HOME_DIR=/home/vagrant"]
-    execute_command = "echo 'vagrant' | {{ .Vars }} sudo -S -E bash '{{ .Path }}'"
-    script          = "provision.sh"
+    environment_vars = ["HOME_DIR=/home/vagrant"]
+    execute_command  = "echo 'vagrant' | {{ .Vars }} sudo -S -E bash '{{ .Path }}'"
+    script           = "provision.sh"
+  }
+
+  provisioner "shell" {
+    environment_vars = ["HOME_DIR=/home/vagrant"]
+    execute_command  = "{{ .Vars }} bash '{{ .Path }}'"
+    script           = "provision-user.sh"
   }
 
   #post-processors {

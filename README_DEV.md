@@ -114,7 +114,7 @@ Create an [access token](https://app.vagrantup.com/settings/security)
 VAGRANT_CLOUD_USER=D3strukt0r
 VAGRANT_CLOUD_TOKEN=<my_access_token>
 VAGRANT_CLOUD_BOX=debian-docker
-VAGRANT_CLOUD_VERSION=0.1.0
+VAGRANT_CLOUD_VERSION=1.0.0
 VAGRANT_CLOUD_PROVIDER=virtualbox
 VAGRANT_CLOUD_FILE=./build/package.box
 ```
